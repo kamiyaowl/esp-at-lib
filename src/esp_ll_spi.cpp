@@ -8,6 +8,8 @@
  *
  */
 
+#include <Seeed_Arduino_FreeRTOS.h>
+
 // the device communicates using SPI, so include the library:
 #include "esp_config.h"
 #include "esp_ll_spi.h"
@@ -61,14 +63,14 @@ int at_wait_io(int level) {
   const uint32_t startMs = millis();
   while (digitalRead(chipSyncPin) != level) {
 
-#ifdef ESP_AT_WAIT_IO_TIMEOUT_ENABLE
+#if ESP_AT_WAIT_IO_TIMEOUT_ENABLE
     const uint32_t elapsedMs = millis() - startMs;
     if (elapsedMs > ESP_AT_WAIT_IO_TIMEOUT_MS) {
       break;
     }
 #endif /* ESP_AT_WAIT_IO_TIMEOUT_ENABLE */
   }
-  
+
   return 1;
 }
 
@@ -80,6 +82,8 @@ int at_spi_write(const uint8_t* buf, uint16_t len, int loop_wait) {
   /* wait slave ready to transfer data */
   delayMicroseconds(_WAIT_SLAVE_READY_US);
 
+  /* must check the SYNC signal. need critical section. */
+  taskENTER_CRITICAL();
   spi_transfer16_cs((SPT_TAG_PRE << 8) | SPT_TAG_WR);
   spi_transfer16_cs(len);
 
@@ -108,8 +112,8 @@ int at_spi_write(const uint8_t* buf, uint16_t len, int loop_wait) {
   for (i = 0; i < len; i++) {
     spi_transfer_cs(buf[i]);
   }
-
   at_wait_io(SPI_STATE_MOSI);
+  taskEXIT_CRITICAL();
 
   /*
   Serial.print("Trans ");
