@@ -58,13 +58,17 @@ static int spi_transfer16_cs(uint16_t v) {
 }
 
 int at_wait_io(int level) {
-  int i;
-  for (i = 0; digitalRead(chipSyncPin) != level; i++) {
-    delay(1);
-    if (i > 500 /*ms*/ * 1) {
+  const uint32_t startMs = millis();
+  while (digitalRead(chipSyncPin) != level) {
+
+#ifdef ESP_AT_WAIT_IO_TIMEOUT_ENABLE
+    const uint32_t elapsedMs = millis() - startMs;
+    if (elapsedMs > ESP_AT_WAIT_IO_TIMEOUT_MS) {
       break;
     }
+#endif /* ESP_AT_WAIT_IO_TIMEOUT_ENABLE */
   }
+  
   return 1;
 }
 

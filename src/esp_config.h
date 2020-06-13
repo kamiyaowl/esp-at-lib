@@ -80,6 +80,9 @@ int xprintf( const char * format, ... );
 #define ARDUINO_SPI_PIN_CS        RTL8720D_SS_PIN
 #define ARDUINO_SPI_PIN_SYNC      RTL8720D_GPIO0
 
+// at_wait_io timeout
+#define ESP_AT_WAIT_IO_TIMEOUT_ENABLE        (1)
+#define ESP_AT_WAIT_IO_TIMEOUT_MS          (500)
 
 
 /* Include default configuration setup */
